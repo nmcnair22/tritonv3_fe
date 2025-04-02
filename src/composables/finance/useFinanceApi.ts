@@ -1,6 +1,18 @@
 import apiClient from '../../services/api';
 import { ref } from 'vue';
 import axios from 'axios';
+import { useFinanceStore } from '@/stores/finance';
+
+interface Company {
+  id: number;
+  displayName: string;
+  name: string;
+}
+
+const MOCK_COMPANIES: Company[] = [
+  { id: 1, displayName: 'Mock Company', name: 'Mock Company' },
+  { id: 2, displayName: 'Mock Subsidiary', name: 'Mock Subsidiary' }
+];
 
 interface FetchSalesInvoicesParams {
   $top?: number;
@@ -14,9 +26,15 @@ interface FetchSalesInvoicesParams {
   customerId?: string;
 }
 
+/**
+ * @deprecated This composable is deprecated. Please use the useFinanceStore from Pinia instead.
+ */
 export function useFinanceApi() {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  
+  // Get the finance store
+  const financeStore = useFinanceStore();
 
   // Use the pre-configured axios instance with auth headers
   const api = apiClient;
@@ -56,120 +74,82 @@ export function useFinanceApi() {
     }
   );
 
+  // Log API activity for debugging
+  const logApi = (action: string, data?: any) => {
+    console.log(`[FINANCE API] ${action}`, data);
+  };
+
   /**
    * Fetch companies the user has access to
+   * @deprecated Use financeStore.fetchCompanies() instead
    */
-  async function fetchCompanies() {
-    try {
-      // Debug: Log attempt
-      console.log(`[DEBUG] Attempting to fetch companies list`);
-      console.log(`[DEBUG] API URL: ${api.defaults.baseURL}/api/accounting/companies`);
-      console.log(`[DEBUG] Headers:`, api.defaults.headers);
-      
-      // Make the API call - correct endpoint from backend routes
-      const response = await api.get('/api/accounting/companies');
-      
-      // Debug: Log response
-      console.log(`[DEBUG] Companies API response status:`, response.status);
-      console.log(`[DEBUG] Companies API response headers:`, response.headers);
-      console.log(`[DEBUG] Companies API response data:`, response.data);
-      
-      return response.data;
-    } catch (err: any) {
-      // Debug: Log error details
-      console.error('[DEBUG] Error fetching companies:', err);
-      console.error('[DEBUG] Error details:', {
-        message: err.message,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        config: {
-          url: err.config?.url,
-          method: err.config?.method,
-          headers: err.config?.headers,
-        }
-      });
-      
-      throw err; // Let the component handle errors
-    }
-  }
+  const fetchCompanies = async () => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchCompanies() instead');
+    return financeStore.fetchCompanies();
+  };
 
   /**
-   * Fetch income statement data for dashboard
+   * Fetch balance sheet
+   * @deprecated Use financeStore.fetchBalanceSheet() instead
    */
-  async function fetchIncomeStatementData(startDate?: string, endDate?: string, companyId?: string) {
-    try {
-      const params: Record<string, string> = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (companyId) params.companyId = companyId;
-
-      // Debug: Log attempt
-      console.log(`[DEBUG] Attempting to fetch income statement data with params:`, params);
-      console.log(`[DEBUG] API URL: ${api.defaults.baseURL}/api/accounting/reports/incomeStatement`);
-      
-      // Make the API call with the correct camelCase endpoint
-      const response = await api.get('/api/accounting/reports/incomeStatement', { params });
-      
-      // Debug: Log response
-      console.log(`[DEBUG] Income statement API response status:`, response.status);
-      console.log(`[DEBUG] Income statement API response data:`, response.data);
-      
-      return response.data;
-    } catch (err: any) {
-      // Debug: Log error details
-      console.error('[DEBUG] Error fetching income statement data:', err);
-      console.error('[DEBUG] Error details:', {
-        message: err.message,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        config: {
-          url: err.config?.url,
-          method: err.config?.method,
-          headers: err.config?.headers,
-          params: err.config?.params
-        }
-      });
-      
-      throw err; // Let the component handle errors
-    }
-  }
+  const fetchBalanceSheet = async (companyId: number, asOfDate: string) => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchBalanceSheet() instead');
+    return financeStore.fetchBalanceSheet(companyId, asOfDate);
+  };
 
   /**
-   * Fetch sales invoices with filtering options
+   * Fetch income statement data
+   * @deprecated Use financeStore.fetchIncomeStatement() instead
    */
-  async function fetchSalesInvoices(params: FetchSalesInvoicesParams = {}) {
-    try {
-      console.log(`[API] Fetching sales invoices with params:`, params);
-      
-      // Updated endpoint to match Laravel backend
-      const response = await api.get('/api/accounting/sales-invoices', { params });
-      
-      console.log(`[API] Sales invoices API response:`, response);
-      
-      return response.data;
-    } catch (err) {
-      console.error('[API] Error fetching sales invoices:', err);
-      throw err; // Let the component handle errors
-    }
-  }
+  const fetchIncomeStatementData = async (companyId: number, startDate: string, endDate: string) => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchIncomeStatement() instead');
+    return financeStore.fetchIncomeStatement(companyId, startDate, endDate);
+  };
+
+  /**
+   * Fetch cash flow statement
+   * @deprecated Use financeStore.fetchCashFlowStatement() instead
+   */
+  const fetchCashFlowStatement = async (companyId: number, startDate: string, endDate: string) => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchCashFlowStatement() instead');
+    return financeStore.fetchCashFlowStatement(companyId, startDate, endDate);
+  };
+
+  /**
+   * Fetch retained earnings
+   * @deprecated Use financeStore.fetchRetainedEarnings() instead
+   */
+  const fetchRetainedEarnings = async (companyId: number, startDate: string, endDate: string) => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchRetainedEarnings() instead');
+    return financeStore.fetchRetainedEarnings(companyId, startDate, endDate);
+  };
+
+  /**
+   * Fetch trial balance
+   * @deprecated Use financeStore.fetchTrialBalance() instead
+   */
+  const fetchTrialBalance = async (companyId: number, asOfDate: string) => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchTrialBalance() instead');
+    return financeStore.fetchTrialBalance(companyId, asOfDate);
+  };
+
+  /**
+   * Fetch sales invoices
+   * @deprecated Use financeStore.fetchSalesInvoices() instead
+   */
+  const fetchSalesInvoices = async (params: FetchSalesInvoicesParams = {}) => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchSalesInvoices() instead');
+    return financeStore.fetchSalesInvoices(params);
+  };
 
   /**
    * Fetch a single sales invoice by ID
+   * @deprecated Use financeStore.fetchSalesInvoice() instead
    */
-  async function fetchSalesInvoice(invoiceId: string, companyId?: string) {
-    try {
-      const params: Record<string, string> = {};
-      if (companyId) params.companyId = companyId;
-
-      const response = await api.get(`/api/accounting/sales-invoices/${invoiceId}`, { params });
-      return response.data;
-    } catch (err) {
-      console.error(`Error fetching sales invoice ${invoiceId}:`, err);
-      throw err;
-    }
-  }
+  const fetchSalesInvoice = async (invoiceId: number) => {
+    console.log('[FINANCE API DEPRECATED] Use financeStore.fetchSalesInvoice() instead');
+    return financeStore.fetchSalesInvoice(invoiceId);
+  };
 
   /**
    * Create a new sales invoice
@@ -285,79 +265,6 @@ export function useFinanceApi() {
     }
   }
 
-  /**
-   * Fetch balance sheet data
-   */
-  async function fetchBalanceSheet(endDate: string, companyId?: string) {
-    try {
-      const params: Record<string, string> = {};
-      if (endDate) params.endDate = endDate;
-      if (companyId) params.companyId = companyId;
-      
-      // Make the API call with the correct camelCase endpoint
-      const response = await api.get('/api/accounting/reports/balanceSheet', { params });
-      return response.data;
-    } catch (err) {
-      console.error('Error fetching balance sheet data:', err);
-      throw err;
-    }
-  }
-
-  /**
-   * Fetch cash flow statement data
-   */
-  async function fetchCashFlowStatement(startDate?: string, endDate?: string, companyId?: string) {
-    try {
-      const params: Record<string, string> = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (companyId) params.companyId = companyId;
-      
-      // Make the API call with the correct camelCase endpoint
-      const response = await api.get('/api/accounting/reports/cashFlow', { params });
-      return response.data;
-    } catch (err) {
-      console.error('Error fetching cash flow data:', err);
-      throw err;
-    }
-  }
-
-  /**
-   * Fetch retained earnings statement data
-   */
-  async function fetchRetainedEarnings(endDate: string, companyId?: string) {
-    try {
-      const params: Record<string, string> = {};
-      if (endDate) params.endDate = endDate;
-      if (companyId) params.companyId = companyId;
-      
-      // Make the API call with the correct camelCase endpoint
-      const response = await api.get('/api/accounting/reports/retainedEarnings', { params });
-      return response.data;
-    } catch (err) {
-      console.error('Error fetching retained earnings data:', err);
-      throw err;
-    }
-  }
-
-  /**
-   * Fetch trial balance data
-   */
-  async function fetchTrialBalance(endDate: string, companyId?: string) {
-    try {
-      const params: Record<string, string> = {};
-      if (endDate) params.endDate = endDate;
-      if (companyId) params.companyId = companyId;
-      
-      // Make the API call with the correct camelCase endpoint
-      const response = await api.get('/api/accounting/reports/trialBalance', { params });
-      return response.data;
-    } catch (err) {
-      console.error('Error fetching trial balance data:', err);
-      throw err;
-    }
-  }
-
   // Add function to test API without interceptors
   async function testDirectApiCall() {
     console.log("[DEBUG] Making direct API test call...");
@@ -401,7 +308,11 @@ export function useFinanceApi() {
     isLoading,
     error,
     fetchCompanies,
+    fetchBalanceSheet,
     fetchIncomeStatementData,
+    fetchCashFlowStatement,
+    fetchRetainedEarnings,
+    fetchTrialBalance,
     fetchSalesInvoices,
     fetchSalesInvoice,
     createSalesInvoice,
@@ -412,10 +323,6 @@ export function useFinanceApi() {
     fetchCustomers,
     fetchCustomer,
     saveCustomer,
-    fetchBalanceSheet,
-    fetchCashFlowStatement,
-    fetchRetainedEarnings,
-    fetchTrialBalance,
     testDirectApiCall
   };
 } 

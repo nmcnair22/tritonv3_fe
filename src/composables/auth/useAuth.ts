@@ -137,7 +137,6 @@ export function useAuth() {
     
     // If no token in storage, return null immediately
     if (!storedToken) {
-      console.log('[Auth] No token in localStorage, user is not authenticated');
       return null;
     }
     
@@ -154,9 +153,6 @@ export function useAuth() {
     error.value = null;
     
     try {
-      console.log('[Auth] Checking authentication token');
-      console.log('[Auth] Token preview:', token.value.substring(0, 10) + '...');
-      
       // Use token-based auth to get user data
       const response = await apiClient.get('/api/user', {
         headers: {
@@ -164,17 +160,11 @@ export function useAuth() {
         }
       });
       
-      console.log('[Auth] Token is valid, user authenticated');
-      console.log('[Auth] User data:', response.data);
-      
       currentUser.value = response.data;
       return currentUser.value;
     } catch (err: any) {
-      console.error('Auth check error:', err);
-      
       // Clear auth state on error
       if (err.response?.status === 401) {
-        console.error('Token is invalid or expired, clearing auth state');
         currentUser.value = null;
         token.value = '';
         safeClearStorage('auth_token');

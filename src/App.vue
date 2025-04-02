@@ -7,7 +7,6 @@ const { isAuthenticated, checkAuth } = useAuth();
 const route = useRoute();
 
 // Create computed properties for template access
-const isDev = computed(() => import.meta.env.MODE === 'development');
 const hasToken = computed(() => !!localStorage.getItem('auth_token'));
 const tokenPreview = computed(() => {
   const token = localStorage.getItem('auth_token');
@@ -16,15 +15,11 @@ const tokenPreview = computed(() => {
 
 // Auth debugging function
 async function initializeAuth() {
-  console.log('[APP DEBUG] Checking auth...');
+  // Only log token status for debugging
+  const hasToken = !!localStorage.getItem('auth_token');
+  console.log('[AUTH] Token exists:', hasToken);
   
-  // Log the token status first
-  console.log('[APP DEBUG] Token in localStorage:', hasToken.value);
-  if (hasToken.value) {
-    console.log('[APP DEBUG] Token preview:', tokenPreview.value);
-  }
-  
-  // Now run the auth check which validates with backend
+  // Run the auth check which validates with backend
   const user = await checkAuth();
   
   // Store auth state for router guards
@@ -32,24 +27,13 @@ async function initializeAuth() {
     isAuthenticated: !!user
   };
   
-  console.log('=== AUTH DEBUG ===');
-  console.log('Is authenticated from auth check:', !!user);
-  console.log('Has token:', hasToken.value);
-  if (hasToken.value) {
-    console.log('Token preview:', tokenPreview.value);
-  }
-  console.log('Auth in window.__APP_STATE__:', window.__APP_STATE__.isAuthenticated);
-  console.log('=== END AUTH DEBUG ===');
+  console.log('[AUTH] Auth check complete. User authenticated:', !!user);
 }
 
 // Watch route changes to debug auth issues
 watch(() => route.path, (newPath) => {
-  console.log(`[APP DEBUG] Route changed to: ${newPath}`);
-  console.log(`[APP DEBUG] Is authenticated: ${isAuthenticated}`);
-  console.log(`[APP DEBUG] Has token: ${hasToken.value}`);
-  
+  // Only run auth check for finance routes without logging
   if (newPath.startsWith('/finance')) {
-    console.log(`[APP DEBUG] Finance route detected, checking auth...`);
     initializeAuth();
   }
 });
@@ -57,9 +41,8 @@ watch(() => route.path, (newPath) => {
 // Set up initial app state
 onMounted(async () => {
   try {
-    console.log('Checking authentication state...');
+    // Perform auth check without logging
     const userData = await checkAuth();
-    console.log('Authentication check completed', userData);
     
     // Create a safe window.__APP_STATE__ object
     if (typeof window !== 'undefined') {
@@ -88,8 +71,8 @@ if (typeof window !== 'undefined' && window.__APP_STATE__ && 'isAuthenticated' i
 <template>
   <!-- Let router handle layouts -->
   <div class="app-container">
-    <!-- Debug panel (only visible in development) -->
-    <div v-if="isDev" class="debug-panel">
+    <!-- Debug panel (visible in all environments for now) -->
+    <div class="debug-panel">
       <h4>Auth Debug</h4>
       <p>Is Authenticated: {{ isAuthenticated }}</p>
       <p>Current Route: {{ $route.path }}</p>
@@ -99,7 +82,11 @@ if (typeof window !== 'undefined' && window.__APP_STATE__ && 'isAuthenticated' i
     </div>
     
     <!-- Rest of the app -->
-    <router-view />
+    <div class="router-view-wrapper">
+      <div class="debug-note">Router-view begins</div>
+      <router-view />
+      <div class="debug-note">Router-view ends</div>
+    </div>
   </div>
 </template>
 
@@ -153,5 +140,20 @@ if (typeof window !== 'undefined' && window.__APP_STATE__ && 'isAuthenticated' i
 
 .debug-button:hover {
   background-color: #e64a19;
+}
+
+.router-view-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.debug-note {
+  background-color: rgba(255, 235, 59, 0.7);
+  color: black;
+  padding: 4px 8px;
+  font-family: monospace;
+  font-size: 12px;
+  text-align: center;
 }
 </style>

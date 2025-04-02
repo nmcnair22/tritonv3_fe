@@ -32,7 +32,10 @@ const routes: RouteRecordRaw[] = [
           {
             path: '',
             name: 'Finance',
-            component: () => import('../views/finance/FinancialDashboard.vue'),
+            component: () => {
+              console.log('[ROUTER] Loading FinancialDashboard component');
+              return import('../views/finance/FinancialDashboard.vue');
+            },
             meta: {
               title: 'Finance',
               requiresAuth: true
@@ -41,7 +44,10 @@ const routes: RouteRecordRaw[] = [
           {
             path: 'dashboard',
             name: 'FinancialDashboard',
-            component: () => import('../views/finance/FinancialDashboard.vue'),
+            component: () => {
+              console.log('[ROUTER] Loading FinancialDashboard component');
+              return import('../views/finance/FinancialDashboard.vue');
+            },
             meta: {
               title: 'Financial Dashboard',
               requiresAuth: true
@@ -50,7 +56,12 @@ const routes: RouteRecordRaw[] = [
           {
             path: 'reports',
             name: 'FinancialReports',
-            component: () => import('../views/finance/FinancialReports.vue'),
+            component: () => {
+              console.log('[ROUTER] Loading FinancialReports component');
+              const module = import('../views/finance/FinancialReports.vue');
+              console.log('[ROUTER] FinancialReports module loaded:', !!module);
+              return module;
+            },
             meta: {
               title: 'Financial Reports',
               requiresAuth: true

@@ -6,14 +6,14 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* Bundler mode - aligns with Vite */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
 
-    /* Linting */
+    /* Linting - strict settings for consistency */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -21,4 +21,6 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["vite.config.ts"]
+  // Ensure Node.js is version 18+ for Vite compatibility
+  // Check: node --version
 }
