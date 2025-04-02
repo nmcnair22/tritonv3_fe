@@ -1,103 +1,132 @@
-# Triton V3
+# TritonV3 Frontend
 
-A modern Vue 3 application built with TypeScript, PrimeVue, and other powerful technologies.
+A Vue.js based frontend application for the TritonV3 accounting and finance system.
 
-## Tech Stack
+## Overview
 
-- **Vue 3**: Progressive JavaScript framework
-- **TypeScript**: Static type-checking
-- **Vite**: Next generation frontend build tool
-- **PrimeVue 4**: UI Component library for Vue
-- **PrimeVue UIX Themes**: New theming system with Aura preset
-- **Vue Router**: Official router for Vue
-- **Pinia**: State management library for Vue
-- **VueUse**: Collection of Vue composition utilities
-- **Axios**: Promise-based HTTP client
-- **Zod**: TypeScript-first schema validation
+TritonV3 Frontend is a modern Vue 3 application using TypeScript, Pinia for state management, Vue Router for navigation, and PrimeVue for UI components. It provides interfaces for viewing financial reports, managing accounting data, and interacting with the TritonV3 backend API.
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
+- Node.js (v16+)
+- npm (v8+) or yarn
+- Git
 
-- Node.js (v16 or higher)
-- npm or yarn
+## Setup Instructions
 
-### Installation
+### 1. Clone the Repository
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+git clone https://github.com/your-username/TritonV3_FE.git
+cd TritonV3_FE
 ```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+# OR
+yarn
+```
+
+### 3. Environment Configuration
+
+Create a `.env` file in the root directory with the following:
+
+```
+# Development Environment
+NODE_ENV=development
+VITE_APP_MODE=development
+VITE_API_BASE_URL=http://localhost:8000
+VITE_APP_DEBUG=true
+```
+
+Adjust the `VITE_API_BASE_URL` to match your backend API endpoint.
+
+### 4. Run Development Server
+
+```bash
+npm run dev
+# OR
+yarn dev
+```
+
+This will start the development server at `http://localhost:5173`.
+
+### 5. Build for Production
+
+```bash
+npm run build
+# OR
+yarn build
+```
+
+The built assets will be in the `dist` directory.
 
 ## Project Structure
 
 ```
-├── public/             # Static assets
+TritonV3_FE/
+├── public/          # Static assets
 ├── src/
-│   ├── assets/         # Asset files (images, fonts, etc.)
-│   ├── components/     # Reusable Vue components
-│   ├── composables/    # Vue composition functions
-│   ├── layouts/        # Layout components
-│   ├── router/         # Vue Router configuration
-│   ├── services/       # API services
-│   ├── stores/         # Pinia stores
-│   ├── types/          # TypeScript types and schemas
-│   ├── views/          # Page components
-│   ├── App.vue         # Root component
-│   ├── main.ts         # Entry point
-│   └── style.css       # Global styles
-├── index.html          # HTML template
-├── package.json        # Dependencies and scripts
-├── tsconfig.json       # TypeScript configuration
-└── vite.config.ts      # Vite configuration
+│   ├── assets/      # Application assets (images, global styles)
+│   ├── components/  # Vue components
+│   │   ├── finance/ # Finance-related components
+│   │   └── layout/  # Layout components
+│   ├── composables/ # Composable functions 
+│   ├── layouts/     # Layout templates
+│   ├── router/      # Vue Router configuration
+│   ├── services/    # API and other services
+│   ├── stores/      # Pinia stores
+│   └── views/       # Page components
+├── .env             # Environment variables
+├── index.html       # Entry HTML file
+├── package.json     # Project dependencies and scripts
+├── tsconfig.json    # TypeScript configuration
+└── vite.config.ts   # Vite configuration
 ```
 
 ## Features
 
-- **Type Safety**: Full TypeScript support with proper types
-- **Form Validation**: Zod schemas for runtime validation
-- **State Management**: Pinia for a clean store pattern
-- **Responsive UI**: PrimeVue components with the new UIX theme system
-- **API Integration**: Axios for HTTP requests with interceptors
-- **Authentication**: JWT-based authentication with localStorage
+- **Financial Reports**: View balance sheet, income statement, cash flow, and more
+- **Company Management**: Select and manage multiple companies
+- **Authentication**: Secure login and token-based authentication
+- **Responsive Design**: Works across desktop and mobile devices
 
-## Theming
+## Authentication
 
-This project uses the new PrimeVue UIX theme system with the Aura preset. The theme is configured in `main.ts`:
+The application uses JWT token authentication. On login, an auth token is stored in localStorage and used for subsequent API requests.
 
-```ts
-app.use(PrimeVue, {
-  theme: {
-    preset: Aura,
-    options: {
-      prefix: 'p',
-      darkModeSelector: 'system',
-      cssLayer: false
-    }
-  }
-})
-```
+## Troubleshooting
 
-You can customize the theme by using the `definePreset` utility:
+### API Connection Issues
 
-```ts
-import { definePreset } from '@primeuix/themes'
-import Aura from '@primeuix/themes/aura'
+1. Check if the backend API is running
+2. Verify the `VITE_API_BASE_URL` in `.env` matches the backend URL
+3. Inspect the browser console for API error messages
+4. Verify your auth token is valid
 
-const MyPreset = definePreset(Aura, {
-  // Your customizations here
-})
-```
+### Blank Pages or Component Load Failures
+
+1. Check browser console for JavaScript errors
+2. Ensure all imports are correct (case sensitivity matters)
+3. Clear browser cache and reload the page
+4. Try restarting the dev server with `npm run dev`
+
+### Report Data Not Loading
+
+1. Verify the API is correctly formatted in kebab-case (e.g., `/api/accounting/reports/balance-sheet`)
+2. Check network requests in browser dev tools
+3. Ensure company ID and date parameters are properly formatted
+
+## Development Guidelines
+
+- Follow Vue 3 Composition API patterns
+- Use Pinia for state management
+- Keep components small and focused
+- Use TypeScript interfaces for data structures
+- Follow the existing naming conventions
 
 ## License
 
-MIT
+[Specify license information here]
