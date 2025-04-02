@@ -1,7 +1,7 @@
 <template>
   <div class="layout-wrapper" :class="{ 'sidebar-collapsed': !isSidebarExpanded }">
     <!-- Sidebar component -->
-    <div class="sidebar" :class="{ 'collapsed': !isSidebarExpanded }">
+    <div class="sidebar" :class="{ 'collapsed': !isSidebarExpanded, 'expanded': isMobile && isSidebarExpanded }">
       <AppSidebar :expanded="isSidebarExpanded" @toggle="toggleSidebar" />
     </div>
     
@@ -12,7 +12,7 @@
       
       <!-- Page content -->
       <div class="content-wrapper">
-        <slot></slot>
+        <router-view></router-view>
       </div>
       
       <!-- Footer -->
@@ -51,15 +51,11 @@ const checkMobile = () => {
 
 // Lifecycle hooks
 onMounted(() => {
-  // Check mobile on initial load
   checkMobile();
-  
-  // Add resize listener
   window.addEventListener('resize', checkMobile);
 });
 
 onBeforeUnmount(() => {
-  // Remove resize listener
   window.removeEventListener('resize', checkMobile);
 });
 </script>
@@ -70,13 +66,11 @@ onBeforeUnmount(() => {
   --night-sky: #0B2244;
   --sunrise-yellow: #FFB400;
   --morning-blue: #297FB7;
-  
   /* UI Colors */
   --white: #FFFFFF;
   --light-gray: #F5F5F5;
   --medium-gray: #E0E0E0;
   --dark-gray: #757575;
-  
   /* Layout */
   --sidebar-width: 234px;
   --sidebar-collapsed-width: 60px;
@@ -99,7 +93,7 @@ onBeforeUnmount(() => {
   top: 0;
   left: 0;
   z-index: 1000;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, transform 0.3s ease;
 }
 
 .sidebar.collapsed {
@@ -123,6 +117,8 @@ onBeforeUnmount(() => {
   flex: 1;
   padding: var(--content-padding);
   overflow-y: auto;
+  background-color: white;
+  min-height: 300px;
 }
 
 .footer {
@@ -136,7 +132,6 @@ onBeforeUnmount(() => {
 /* Responsive styles */
 @media (max-width: 991px) {
   .sidebar {
-    width: var(--sidebar-width);
     transform: translateX(-100%);
   }
   

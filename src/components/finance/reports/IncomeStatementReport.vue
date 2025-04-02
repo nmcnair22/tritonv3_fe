@@ -1,43 +1,52 @@
 <template>
   <div class="income-statement-report">
-    <div class="report-header">
-      <h2>Income Statement</h2>
-      <p class="report-period">{{ formattedDateRange }}</p>
+    <div class="text-center mb-4">
+      <h2 class="text-2xl font-bold mb-2">Income Statement</h2>
+      <p class="text-color-secondary">{{ formattedDateRange }}</p>
     </div>
     
-    <div v-if="isLoading" class="loading-indicator">
-      <p>Loading income statement data...</p>
-    </div>
+    <ProgressSpinner v-if="isLoading" class="w-8rem h-8rem" strokeWidth="4" fill="var(--surface-ground)" />
     
-    <div v-else-if="!reportData" class="no-data">
+    <div v-else-if="!reportData" class="surface-ground p-4 border-round text-center">
+      <i class="pi pi-exclamation-circle text-xl mb-3"></i>
       <p>No income statement data available.</p>
     </div>
     
     <div v-else class="report-content">
-      <div class="line-items">
-        <!-- Map through the items, using the value field data structure we got from our API test -->
-        <div 
-          v-for="item in reportData.value" 
-          :key="item.id" 
-          class="line-item"
-          :class="{
-            'header': item.lineType === 'header',
-            'indented-1': item.indentation === 1,
-            'indented-2': item.indentation === 2,
-            'indented-3': item.indentation === 3,
-            'total': item.display.toLowerCase().includes('total') || item.lineType === 'total'
-          }"
-        >
-          <span class="item-name">{{ item.display }}</span>
-          <span class="item-amount" v-if="item.lineType !== 'header'">{{ formatCurrency(item.netChange) }}</span>
-        </div>
-      </div>
+      <DataTable :value="reportData.value" class="p-datatable-sm" showGridlines>
+        <Column field="display" header="Account">
+          <template #body="{ data }">
+            <div :class="{
+              'font-bold': data.lineType === 'header',
+              'pl-3': data.indentation === 1,
+              'pl-5': data.indentation === 2,
+              'pl-7': data.indentation === 3
+            }">
+              {{ data.display }}
+            </div>
+          </template>
+        </Column>
+        
+        <Column field="netChange" header="Amount" :sortable="true">
+          <template #body="{ data }">
+            <div v-if="data.lineType !== 'header'" :class="{
+              'font-bold': data.display.toLowerCase().includes('total') || data.lineType === 'total',
+              'text-right': true
+            }">
+              {{ formatCurrency(data.netChange) }}
+            </div>
+          </template>
+        </Column>
+      </DataTable>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import ProgressSpinner from 'primevue/progressspinner';
 
 // Define props
 const props = defineProps({
@@ -91,80 +100,9 @@ function formatCurrency(value) {
 }
 </script>
 
-<style scoped>
+<style>
 .income-statement-report {
   font-family: var(--font-family);
-  color: var(--text-color);
-}
-
-.report-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.report-header h2 {
-  margin-bottom: 0.5rem;
-}
-
-.report-period {
-  font-style: italic;
-  color: var(--text-secondary-color);
-}
-
-.loading-indicator, .no-data {
-  text-align: center;
-  padding: 2rem;
-  background-color: var(--surface-b);
-  border-radius: 4px;
-  margin: 1rem 0;
-}
-
-.line-items {
-  margin: 0 1rem;
-}
-
-.line-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--surface-d);
-}
-
-.line-item:last-child {
-  border-bottom: none;
-}
-
-.header {
-  font-weight: bold;
-  color: var(--primary-color);
-  margin-top: 1rem;
-  border-bottom: 2px solid var(--primary-color);
-}
-
-.indented-1 {
-  margin-left: 1rem;
-}
-
-.indented-2 {
-  margin-left: 2rem;
-}
-
-.indented-3 {
-  margin-left: 3rem;
-}
-
-.item-name {
-  flex: 1;
-}
-
-.item-amount {
-  text-align: right;
-  min-width: 150px;
-}
-
-.total {
-  font-weight: bold;
-  background-color: var(--surface-c);
 }
 
 @media print {
@@ -172,13 +110,17 @@ function formatCurrency(value) {
     padding: 1rem;
   }
   
-  .report-header h2 {
-    font-size: 1.5rem;
+  .p-datatable {
+    font-size: 0.9rem;
   }
   
-  .line-item {
-    font-size: 0.9rem;
-    padding: 0.25rem 0;
+  .p-datatable .p-datatable-thead > tr > th {
+    background-color: #f8f9fa !important;
+    color: #000 !important;
+  }
+  
+  .p-datatable .p-datatable-tbody > tr > td {
+    border-color: #dee2e6 !important;
   }
 }
 </style> 

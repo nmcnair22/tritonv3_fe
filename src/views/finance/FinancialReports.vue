@@ -1,239 +1,247 @@
-// For debugging - at the top of the file
-console.log('[FINANCE REPORTS] File parsed');
-
-// Very first script
-console.log('<<<< FINANCE REPORTS LOADED >>>>');
-
 <template>
   <div class="financial-reports">
-    <h1 class="page-title">Financial Reports</h1>
-    
-    <!-- Simple status display -->
-    <div class="status-panel">
-      <h3>Status</h3>
-      <div>Loading: {{ financeStore.isLoading }}</div>
-      <div>Companies: {{ financeStore.companies.length || 0 }}</div>
-      <div>Has Report Data: {{ !!financeStore.reportData }}</div>
-      <div v-if="financeStore.error" class="error">Error: {{ financeStore.error }}</div>
+    <div class="card">
+      <h1>Financial Reports</h1>
+      
+      <div class="p-fluid grid">
+        <div class="col-12 md:col-3">
+          <label for="reportType" class="block mb-2">Report Type</label>
+          <Select
+            id="reportType"
+            v-model="filters.reportType"
+            :options="reportTypes"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          />
+        </div>
+        
+        <div class="col-12 md:col-3">
+          <label for="dateRange" class="block mb-2">Period</label>
+          <Select
+            id="dateRange"
+            v-model="filters.dateRange"
+            :options="dateRanges"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          />
+        </div>
+        
+        <div v-if="filters.dateRange === 'custom'" class="col-12 md:col-6">
+          <label class="block mb-2">Custom Range</label>
+          <div class="flex gap-2">
+            <InputText
+              type="date"
+              v-model="filters.startDate"
+              placeholder="Start Date"
+              class="w-full"
+            />
+            <InputText
+              type="date"
+              v-model="filters.endDate"
+              placeholder="End Date"
+              class="w-full"
+            />
+          </div>
+        </div>
+        
+        <div class="col-12 md:col-3">
+          <label for="comparison" class="block mb-2">Comparison</label>
+          <Select
+            id="comparison"
+            v-model="filters.comparison"
+            :options="comparisonOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          />
+        </div>
+      </div>
+      
+      <div class="flex justify-content-end mt-4">
+        <Button
+          label="Generate Report"
+          icon="pi pi-refresh"
+          @click="generateReport"
+          :loading="financeStore.isLoading"
+        />
+      </div>
     </div>
     
-    <!-- Simple control panel -->
-    <div class="control-panel">
-      <div class="form-group">
-        <label>Company:</label>
-        <select v-model="selectedCompanyId">
-          <option v-for="company in financeStore.companies" :key="company.id" :value="company.id">
-            {{ company.displayName || company.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Report Type:</label>
-        <select v-model="reportType">
-          <option value="balanceSheet">Balance Sheet</option>
-          <option value="incomeStatement">Income Statement</option>
-          <option value="cashFlow">Cash Flow Statement</option>
-          <option value="retainedEarnings">Retained Earnings</option>
-          <option value="trialBalance">Trial Balance</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>As of Date:</label>
-        <input type="date" v-model="asOfDate">
-      </div>
-
-      <div class="actions">
-        <button @click="loadCompanies" :disabled="financeStore.isLoading">
-          Load Companies
-        </button>
-        <button @click="generateReport" :disabled="!selectedCompanyId || financeStore.isLoading">
-          Generate Report
-        </button>
-      </div>
+    <div v-if="financeStore.error" class="p-message p-message-error mt-4">
+      {{ financeStore.error }}
     </div>
     
-    <!-- API Call Logs -->
-    <div class="api-logs">
-      <h3>API Call Logs</h3>
-      <div v-for="(log, index) in apiLogs" :key="index" class="log-entry">
-        <div class="log-time">{{ log.time }}</div>
-        <div :class="'log-message ' + (log.isError ? 'error' : '')">{{ log.message }}</div>
+    <div v-if="financeStore.reportData" class="card mt-4">
+      <div class="flex justify-content-end mb-4">
+        <Button icon="pi pi-print" label="Print" class="p-button-secondary mr-2" @click="printReport" />
+        <Button icon="pi pi-file-pdf" label="Export PDF" class="p-button-secondary mr-2" @click="exportPdf" />
+        <Button icon="pi pi-file-excel" label="Export Excel" class="p-button-secondary" @click="exportExcel" />
       </div>
+      
+      <component 
+        :is="reportComponent" 
+        :reportData="financeStore.reportData" 
+        :filters="filters"
+        :isLoading="financeStore.isLoading"
+      />
+    </div>
+    
+    <div v-else-if="!financeStore.isLoading && !financeStore.error" class="card mt-4 text-center p-4">
+      <i class="pi pi-file text-4xl text-500 mb-4"></i>
+      <p class="text-700">Select parameters and click "Generate Report" to view financial data.</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { reactive, computed, onMounted } from 'vue';
 import { useFinanceStore } from '@/stores/finance';
+import Button from 'primevue/button';
+import Select from 'primevue/select';
+import InputText from 'primevue/inputtext';
+import BalanceSheetReport from '@/components/finance/reports/BalanceSheetReport.vue';
+import IncomeStatementReport from '@/components/finance/reports/IncomeStatementReport.vue';
+import CashFlowReport from '@/components/finance/reports/CashFlowReport.vue';
+import RetainedEarningsReport from '@/components/finance/reports/RetainedEarningsReport.vue';
+import TrialBalanceReport from '@/components/finance/reports/TrialBalanceReport.vue';
 
-console.log('[FINANCE REPORTS] Script setup starting');
-
-// Store initialization
+// Initialize finance store
 const financeStore = useFinanceStore();
-console.log('[FINANCE REPORTS] Finance store initialized');
 
-// Component state
-const selectedCompanyId = ref(null);
-const reportType = ref('balanceSheet');
-const asOfDate = ref(new Date().toISOString().split('T')[0]);
-const apiLogs = ref([]);
+// Options for dropdowns
+const reportTypes = [
+  { label: 'Balance Sheet', value: 'balanceSheet' },
+  { label: 'Income Statement', value: 'incomeStatement' },
+  { label: 'Cash Flow', value: 'cashFlow' },
+  { label: 'Retained Earnings', value: 'retainedEarnings' },
+  { label: 'Trial Balance', value: 'trialBalance' }
+];
 
-// Log helper
-function addLog(message, isError = false) {
-  const time = new Date().toLocaleTimeString();
-  apiLogs.value.unshift({ time, message, isError });
-  console.log(`[FINANCE REPORTS] ${isError ? 'ERROR' : 'LOG'}: ${message}`);
-}
+const dateRanges = [
+  { label: 'This Month', value: 'month' },
+  { label: 'This Quarter', value: 'quarter' },
+  { label: 'Year to Date', value: 'ytd' },
+  { label: 'Fiscal Year', value: 'fiscal' },
+  { label: 'Custom Range', value: 'custom' }
+];
 
-// Load companies
-async function loadCompanies() {
-  addLog('Loading companies...');
-  try {
-    const companies = await financeStore.fetchCompanies();
-    addLog(`Loaded ${companies.length} companies`);
-    
-    if (companies.length > 0 && !selectedCompanyId.value) {
-      selectedCompanyId.value = companies[0].id;
-      addLog(`Selected company: ${companies[0].name} (${companies[0].id})`);
-    }
-  } catch (err) {
-    addLog(`Error loading companies: ${err.message}`, true);
+const comparisonOptions = [
+  { label: 'None', value: 'none' },
+  { label: 'Previous Period', value: 'previous' },
+  { label: 'Budget', value: 'budget' },
+  { label: 'Year over Year', value: 'yoy' }
+];
+
+// State
+const filters = reactive({
+  reportType: 'balanceSheet',
+  dateRange: 'month',
+  startDate: '',
+  endDate: '',
+  comparison: 'none'
+});
+
+// Computed properties
+const reportComponent = computed(() => {
+  switch (filters.reportType) {
+    case 'balanceSheet': return BalanceSheetReport;
+    case 'incomeStatement': return IncomeStatementReport;
+    case 'cashFlow': return CashFlowReport;
+    case 'retainedEarnings': return RetainedEarningsReport;
+    case 'trialBalance': return TrialBalanceReport;
+    default: return null;
   }
+});
+
+// Methods
+function initializeDateRange() {
+  const today = new Date();
+  const endDate = today.toISOString().split('T')[0];
+  filters.endDate = endDate;
+  
+  const startDate = new Date(today);
+  
+  switch (filters.dateRange) {
+    case 'month':
+      startDate.setDate(1);
+      break;
+    case 'quarter':
+      startDate.setMonth(Math.floor(today.getMonth() / 3) * 3, 1);
+      break;
+    case 'ytd':
+      startDate.setMonth(0, 1);
+      break;
+    case 'fiscal':
+      if (today.getMonth() < 3) {
+        startDate.setFullYear(startDate.getFullYear() - 1, 3, 1);
+      } else {
+        startDate.setMonth(3, 1);
+      }
+      break;
+    default:
+      startDate.setDate(today.getDate() - 30);
+  }
+  
+  filters.startDate = startDate.toISOString().split('T')[0];
 }
 
-// Generate report
 async function generateReport() {
-  if (!selectedCompanyId.value) {
-    addLog('No company selected', true);
-    return;
-  }
-  
-  addLog(`Generating ${reportType.value} report for company ${selectedCompanyId.value}`);
-  
   try {
-    let result;
-    
-    switch (reportType.value) {
+    switch (filters.reportType) {
       case 'balanceSheet':
-        addLog(`Calling fetchBalanceSheet(${selectedCompanyId.value}, ${asOfDate.value})`);
-        result = await financeStore.fetchBalanceSheet(selectedCompanyId.value, asOfDate.value);
+        await financeStore.fetchBalanceSheet(filters.endDate);
         break;
       case 'incomeStatement':
-        addLog('Calling fetchIncomeStatement');
-        result = await financeStore.fetchIncomeStatement(
-          selectedCompanyId.value, 
-          asOfDate.value,
-          asOfDate.value
-        );
+        await financeStore.fetchIncomeStatement(filters.startDate, filters.endDate);
         break;
       case 'cashFlow':
-        addLog('Calling fetchCashFlowStatement');
-        result = await financeStore.fetchCashFlowStatement(
-          selectedCompanyId.value,
-          asOfDate.value,
-          asOfDate.value
-        );
+        await financeStore.fetchCashFlowStatement(filters.startDate, filters.endDate);
         break;
       case 'retainedEarnings':
-        addLog('Calling fetchRetainedEarnings');
-        result = await financeStore.fetchRetainedEarnings(
-          selectedCompanyId.value,
-          asOfDate.value,
-          asOfDate.value
-        );
+        await financeStore.fetchRetainedEarnings(filters.endDate);
         break;
       case 'trialBalance':
-        addLog('Calling fetchTrialBalance');
-        result = await financeStore.fetchTrialBalance(
-          selectedCompanyId.value,
-          asOfDate.value
-        );
+        await financeStore.fetchTrialBalance(filters.endDate);
         break;
     }
-    
-    addLog(`Report API call complete. Has data: ${!!result}`);
   } catch (err) {
-    addLog(`Error generating report: ${err.message}`, true);
+    console.error(`Error generating ${filters.reportType}:`, err);
   }
 }
 
-// Setup
-onMounted(async () => {
-  console.log('[FINANCE REPORTS] Component mounted');
-  addLog('Component mounted');
-  
-  // Load companies automatically
-  await loadCompanies();
+function printReport() {
+  window.print();
+}
+
+function exportPdf() {
+  // TODO: Implement PDF export
+}
+
+function exportExcel() {
+  // TODO: Implement Excel export
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  initializeDateRange();
 });
 </script>
 
-<style scoped>
+<style>
 .financial-reports {
-  padding: 20px;
+  padding: 1.5rem;
 }
 
-.page-title {
-  margin-bottom: 20px;
+@media print {
+  .financial-reports {
+    padding: 0;
+  }
+  
+  .report-filters,
+  .report-actions {
+    display: none;
+  }
 }
-
-.status-panel,
-.control-panel,
-.api-logs {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 15px;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.actions {
-  margin-top: 20px;
-}
-
-button {
-  background: #297FB7;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-button:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-}
-
-.log-entry {
-  padding: 5px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.log-time {
-  font-size: 0.8em;
-  color: #6c757d;
-}
-
-.error {
-  color: #dc3545;
-}
-
-.api-logs {
-  max-height: 300px;
-  overflow-y: auto;
-}
-</style> 
+</style>

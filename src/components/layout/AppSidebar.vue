@@ -26,7 +26,7 @@
       <ul>
         <!-- Dashboard -->
         <li>
-          <router-link to="/dashboard" :class="{ 'active': isActive('/dashboard'), 'collapsed': !expanded }">
+          <router-link to="/" :class="{ 'active': isActive('/') && !isActive('/finance'), 'collapsed': !expanded }">
             <i class="pi pi-home"></i>
             <span v-if="expanded">Dashboard</span>
           </router-link>
@@ -48,7 +48,7 @@
           
           <!-- Finance Submenu -->
           <div v-if="expanded && isSubmenuOpen('finance')" class="submenu">
-            <router-link to="/finance/dashboard" class="submenu-item" :class="{ 'active': route.path === '/finance/dashboard' }">
+            <router-link to="/finance" class="submenu-item" :class="{ 'active': route.path === '/finance' }">
               Financial Dashboard
             </router-link>
             <router-link to="/finance/accounts-receivable" class="submenu-item" :class="{ 'active': route.path === '/finance/accounts-receivable' }">
@@ -177,7 +177,7 @@ defineEmits(['toggle']);
 const route = useRoute();
 
 // State
-const openSubmenus = ref<string[]>(['projects', 'finance']); // Initially open submenus
+const openSubmenus = ref<string[]>(['finance']); // Start with finance open by default
 const unreadMessages = ref(3); // Unread message count
 
 // Mock user data
@@ -194,6 +194,7 @@ const isActive = (path: string) => {
 };
 
 const toggleSubmenu = (menu: string) => {
+  console.log(`Toggling submenu: ${menu}`);
   if (openSubmenus.value.includes(menu)) {
     openSubmenus.value = openSubmenus.value.filter(item => item !== menu);
   } else {
@@ -231,11 +232,6 @@ const isSubmenuOpen = (menu: string) => {
 
 .logo-full {
   height: 28px;
-  width: auto;
-}
-
-.logo-icon {
-  height: 32px;
   width: auto;
 }
 
