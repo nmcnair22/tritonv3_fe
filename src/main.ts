@@ -1,32 +1,59 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
-import 'primeicons/primeicons.css'
-import Aura from '@primeuix/themes/aura'
-import router from './router'
-
-// Import style.css after PrimeVue theme
-import './style.css'
+import Lara from '@primeuix/themes/lara'
+import Router from './router'
 import App from './App.vue'
 
-// Create Pinia store
-const pinia = createPinia()
+// Import PrimeVue styles
+// Note: In PrimeVue 4, themes are imported differently compared to v3
+// No need to import theme.css anymore as it's handled by the theme preset
 
-// Create app
+// Import PrimeIcons
+import 'primeicons/primeicons.css'
+
+// Import custom styles
+import '@/assets/styles/main.css'
+
+// Import PrimeVue components that will be used globally
+import Button from 'primevue/button'
+import Drawer from 'primevue/drawer'
+import Ripple from 'primevue/ripple'
+
+// Initialize the app
 const app = createApp(App)
 
-// Configure PrimeVue with the new theme system
+// Set up Pinia
+const pinia = createPinia()
+app.use(pinia)
+
+// Set up Vue Router
+app.use(Router)
+
+// Set up PrimeVue with the Lara theme
 app.use(PrimeVue, {
   theme: {
-    preset: Aura,
+    preset: Lara,
     options: {
+      // The prefix used by the component styles (default is 'p')
       prefix: 'p',
-      darkModeSelector: 'system',
-      cssLayer: false
+      
+      // CSS layer configuration (optional)
+      cssLayer: {
+        name: 'primevue'
+      }
     }
-  }
+  },
+  // Enable ripple effect for buttons
+  ripple: true
 })
-app.use(pinia)
-app.use(router)
 
+// Register PrimeVue directives
+app.directive('ripple', Ripple)
+
+// Register global components
+app.component('Button', Button)
+app.component('Drawer', Drawer)
+
+// Mount the app
 app.mount('#app')

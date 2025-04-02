@@ -1,70 +1,90 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import Button from 'primevue/button'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import AppLayout from '@/components/layout/AppLayout.vue'
 
-const router = useRouter()
+const route = useRoute()
+
+// Only show layout for authenticated routes
+const showLayout = computed(() => {
+  // Skip layout for login and error pages
+  return !route.meta.guest && route.name !== 'NotFound'
+})
 </script>
 
 <template>
-  <div class="app-container">
-    <header class="app-header">
-      <h1 class="app-title">Triton V3</h1>
-      <div class="menu">
-        <Button label="Home" icon="pi pi-home" class="p-button-text" @click="router.push('/')" />
-        <Button 
-          label="Login" 
-          icon="pi pi-sign-in" 
-          class="p-button-text" 
-          @click="router.push('/login')" 
-        />
-      </div>
-    </header>
-    
-    <main class="app-content">
-      <router-view />
-    </main>
-    
-    <footer class="app-footer">
-      <p>Triton V3 - © 2023</p>
-    </footer>
-  </div>
+  <AppLayout v-if="showLayout">
+    <router-view />
+  </AppLayout>
+  <router-view v-else />
 </template>
 
 <style>
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.app-header {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.app-title {
-  flex-grow: 1;
+/* Global styles */
+* {
+  box-sizing: border-box;
   margin: 0;
-  font-size: 1.5rem;
+  padding: 0;
 }
 
-.menu {
-  display: flex;
-  gap: 0.5rem;
+html, body {
+  font-family: var(--font-family);
+  font-size: 16px;
+  color: var(--p-text-color);
+  background-color: var(--p-surface-ground);
 }
 
-.app-content {
-  flex-grow: 1;
-  padding: 1rem;
+/* Utility classes */
+.w-full {
+  width: 100% !important;
 }
 
-.app-footer {
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-  text-align: center;
+.h-full {
+  height: 100% !important;
 }
+
+.flex {
+  display: flex !important;
+}
+
+.flex-column {
+  flex-direction: column !important;
+}
+
+.align-items-center {
+  align-items: center !important;
+}
+
+.justify-content-center {
+  justify-content: center !important;
+}
+
+.justify-content-between {
+  justify-content: space-between !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+/* Spacing utilities */
+.m-0 { margin: 0 !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 2rem !important; }
+
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 2rem !important; }
+
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 0.25rem !important; }
+.p-2 { padding: 0.5rem !important; }
+.p-3 { padding: 1rem !important; }
+.p-4 { padding: 1.5rem !important; }
+.p-5 { padding: 2rem !important; }
 </style>
