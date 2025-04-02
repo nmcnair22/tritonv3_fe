@@ -51,7 +51,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Button from 'primevue/button'
 import { useLocalStorage } from '@vueuse/core'
-import { useAuth } from '../composables/useAuth'
+import { useAuth } from '@/composables/auth/useAuth'
 
 const props = defineProps<{
   title?: string

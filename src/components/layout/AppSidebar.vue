@@ -32,6 +32,34 @@
           </router-link>
         </li>
         
+        <!-- Finance -->
+        <li>
+          <div 
+            class="menu-item" 
+            :class="{ 'active': isActive('/finance'), 'collapsed': !expanded }"
+            @click="toggleSubmenu('finance')"
+          >
+            <div class="item-content">
+              <i class="pi pi-chart-bar"></i>
+              <span v-if="expanded">Finance</span>
+            </div>
+            <i v-if="expanded" class="pi submenu-icon" :class="isSubmenuOpen('finance') ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+          </div>
+          
+          <!-- Finance Submenu -->
+          <div v-if="expanded && isSubmenuOpen('finance')" class="submenu">
+            <router-link to="/finance/dashboard" class="submenu-item" :class="{ 'active': route.path === '/finance/dashboard' }">
+              Financial Dashboard
+            </router-link>
+            <router-link to="/finance/accounts-receivable" class="submenu-item" :class="{ 'active': route.path === '/finance/accounts-receivable' }">
+              Accounts Receivable
+            </router-link>
+            <router-link to="/finance/reports" class="submenu-item" :class="{ 'active': route.path === '/finance/reports' }">
+              Financial Reports
+            </router-link>
+          </div>
+        </li>
+        
         <!-- Analytics -->
         <li>
           <router-link to="/analytics" :class="{ 'active': isActive('/analytics'), 'collapsed': !expanded }">
@@ -131,16 +159,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-// Props
-const props = defineProps({
+// Props with types
+defineProps({
   expanded: {
     type: Boolean,
     default: true
   }
-});
+})
 
 // Emits
 defineEmits(['toggle']);
@@ -149,7 +177,7 @@ defineEmits(['toggle']);
 const route = useRoute();
 
 // State
-const openSubmenus = ref<string[]>(['projects']); // Initially open submenus
+const openSubmenus = ref<string[]>(['projects', 'finance']); // Initially open submenus
 const unreadMessages = ref(3); // Unread message count
 
 // Mock user data

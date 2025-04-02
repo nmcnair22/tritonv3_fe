@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import axios from 'axios'
 import type { User } from '../types'
+import apiClient from '../services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('auth_token'))
@@ -14,8 +16,12 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = newToken
     if (newToken) {
       localStorage.setItem('auth_token', newToken)
+      // Also set the axios default auth header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
     } else {
       localStorage.removeItem('auth_token')
+      // Remove auth header when token is cleared
+      delete axios.defaults.headers.common['Authorization']
     }
   }
 
@@ -28,29 +34,64 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      // Mock API call - replace with real API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Use the real API login endpoint
+      const response = await apiClient.post('/api/api-login', { email, password })
       
-      // In a real app, you would get these from the API
-      const mockUser = { id: 1, email, name: 'Test User', role: 'user' }
-      const mockToken = 'mock-jwt-token'
+      // Extract token and user data from response
+      const responseToken = response.data.token
+      const responseUser = response.data.user
       
-      setUser(mockUser as User)
-      setToken(mockToken)
+      if (!responseToken) {
+        throw new Error('No token received from server')
+      }
+      
+      // Set user and token
+      setUser(responseUser as User)
+      setToken(responseToken)
+      
+      console.log('[Auth Store] Login successful')
+      console.log('[Auth Store] Token received:', responseToken.substring(0, 10) + '...')
+      console.log('[Auth Store] User data:', responseUser)
       
       return true
-    } catch (err) {
-      console.error('Login error:', err)
-      error.value = 'Invalid email or password'
+    } catch (err: any) {
+      console.error('[Auth Store] Login error:', err)
+      
+      if (err.response?.data?.message) {
+        error.value = err.response.data.message
+      } else {
+        error.value = err.message || 'Invalid email or password'
+      }
+      
       return false
     } finally {
       isLoading.value = false
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    setToken(null)
+  const logout = async () => {
+    isLoading.value = true
+    
+    try {
+      // Only call logout API if we have a token
+      if (token.value) {
+        // Call the API logout endpoint
+        await apiClient.post('/api/logout', {}, {
+          headers: {
+            'Authorization': `Bearer ${token.value}`
+          }
+        })
+        console.log('[Auth Store] Logout API call successful')
+      }
+    } catch (err) {
+      console.error('[Auth Store] Logout API error:', err)
+      // Continue with logout even if API call fails
+    } finally {
+      // Always clear state
+      setUser(null)
+      setToken(null)
+      isLoading.value = false
+    }
   }
 
   const checkAuth = async (): Promise<User | null> => {
@@ -59,22 +100,30 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     
     try {
-      // Mock API call - replace with real API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Use the API to verify token and get user data
+      const response = await apiClient.get('/api/user', {
+        headers: {
+          'Authorization': `Bearer ${token.value}`
+        }
+      })
       
-      // In a real app, you would verify the token and get user data
-      const mockUser = { id: 1, email: 'user@example.com', name: 'Test User', role: 'user' }
+      const userData = response.data
+      setUser(userData as User)
       
-      setUser(mockUser as User)
       return user.value
     } catch (err) {
-      console.error('Auth check error:', err)
+      console.error('[Auth Store] Auth check error:', err)
       logout()
       error.value = 'Authentication failed'
       return null
     } finally {
       isLoading.value = false
     }
+  }
+
+  // Initialize axios auth header if token exists
+  if (token.value) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
   }
 
   return {

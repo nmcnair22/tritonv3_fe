@@ -20,9 +20,7 @@
       </button>
       
       <!-- Theme Toggle -->
-      <button class="header-button" @click="toggleDarkMode">
-        <i class="pi" :class="isDarkMode ? 'pi-sun' : 'pi-moon'"></i>
-      </button>
+      <ThemeToggle />
       
       <!-- Language Selector -->
       <div class="language-selector">
@@ -43,27 +41,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useThemeStore } from '../../stores/theme';
+import ThemeToggle from '@/components/common/ThemeToggle.vue';
 
 // Emits
 defineEmits(['toggle-sidebar']);
-
-// Store
-const themeStore = useThemeStore();
 
 // State
 const notifications = ref(4);
 const userMenuOpen = ref(false);
 
-// Computed
-const isDarkMode = ref(themeStore.isDarkMode);
-
 // Methods
-const toggleDarkMode = () => {
-  themeStore.toggleDarkMode();
-  isDarkMode.value = themeStore.isDarkMode;
-};
-
 const toggleUserMenu = () => {
   userMenuOpen.value = !userMenuOpen.value;
 };

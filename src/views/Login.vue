@@ -73,14 +73,14 @@
             <input 
               id="password" 
               v-model="password" 
-              type="password" 
+              :type="showPassword ? 'text' : 'password'"
               placeholder="Enter your password" 
               :class="{ 'error': passwordError }"
             />
             <button 
               type="button" 
               class="password-toggle" 
-              @click="togglePasswordVisibility"
+              @click="togglePassword"
             >
               <i :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
             </button>
@@ -105,8 +105,23 @@
           <i v-else class="pi pi-spin pi-spinner"></i>
         </button>
         
+        <!-- Debug info display -->
+        <div v-if="debugInfo || authError" class="debug-info">
+          <h4>Debug Information</h4>
+          <p v-if="debugInfo">{{ debugInfo }}</p>
+          <p v-if="authError">Auth Error: {{ authError }}</p>
+        </div>
+        
         <div class="divider">
           <span>OR</span>
+        </div>
+        
+        <!-- Add dev quick login buttons -->
+        <div v-if="isDev" class="dev-buttons">
+          <button type="button" class="dev-button" @click="fillTestUser('test@example.com', 'password123')">
+            <i class="pi pi-user"></i>
+            <span>Test User</span>
+          </button>
         </div>
         
         <button type="button" class="google-button">
@@ -128,59 +143,112 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/auth/useAuth';
 
-// Router
 const router = useRouter();
+const route = useRoute();
+const { login, isLoading, error: authError } = useAuth();
 
 // Form data
 const email = ref('');
 const password = ref('');
-const rememberMe = ref(false);
 const showPassword = ref(false);
-const isLoading = ref(false);
+const rememberMe = ref(false);
+
+// Error states
 const emailError = ref(false);
 const passwordError = ref(false);
 
-// Toggle password visibility
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-  
-  // Toggle input type
-  const passwordInput = document.getElementById('password');
-  if (passwordInput) {
-    passwordInput.type = showPassword.value ? 'text' : 'password';
-  }
-};
+// Debug info
+const debugInfo = ref('');
 
-// Login handler
-const handleLogin = async () => {
-  // Reset errors
+// Development utilities
+const isDev = computed(() => import.meta.env.MODE === 'development');
+
+// Function to fill login form with test credentials
+function fillTestUser(testEmail, testPassword) {
+  email.value = testEmail;
+  password.value = testPassword;
+  console.log('[LOGIN DEBUG] Filled test credentials for', testEmail);
+  
+  // Auto-submit form after a short delay
+  setTimeout(() => {
+    handleLogin();
+  }, 300);
+}
+
+async function handleLogin() {
+  // Reset error states
   emailError.value = false;
   passwordError.value = false;
+  debugInfo.value = '';
   
-  // Validate
+  console.log('[LOGIN DEBUG] Login attempt started');
+  console.log('[LOGIN DEBUG] Using email:', email.value);
+  
+  // Basic validation
   if (!email.value) {
     emailError.value = true;
-    return;
+    debugInfo.value += 'Email is required. ';
+    console.log('[LOGIN DEBUG] Validation failed: Email required');
   }
   
   if (!password.value) {
     passwordError.value = true;
+    debugInfo.value += 'Password is required. ';
+    console.log('[LOGIN DEBUG] Validation failed: Password required');
+  }
+  
+  if (emailError.value || passwordError.value) {
+    console.log('[LOGIN DEBUG] Validation failed, aborting login');
     return;
   }
   
-  isLoading.value = true;
-  
-  // Simulate authentication
-  setTimeout(() => {
-    isLoading.value = false;
+  try {
+    // Call the login method from auth composable
+    console.log('[LOGIN DEBUG] Validation passed, calling login method');
+    const success = await login(email.value, password.value);
     
-    // Navigate to dashboard on success
-    router.push('/dashboard');
-  }, 1000);
-};
+    console.log('[LOGIN DEBUG] Login result:', success);
+    debugInfo.value = authError.value || '';
+    
+    if (success) {
+      // Check stored token
+      const token = localStorage.getItem('auth_token');
+      console.log('[LOGIN DEBUG] Token stored in localStorage:', !!token);
+      if (token) {
+        console.log('[LOGIN DEBUG] Token first 10 chars:', token.substring(0, 10) + '...');
+      }
+      
+      // Reload window.__APP_STATE__ for router guards
+      window.__APP_STATE__ = {
+        isAuthenticated: true
+      };
+      
+      // Redirect to the dashboard or to the originally requested page
+      const redirectPath = route.query.redirect || '/dashboard';
+      console.log('[LOGIN DEBUG] Redirecting to:', redirectPath);
+      router.push(redirectPath.toString());
+    } else {
+      console.log('[LOGIN DEBUG] Login failed, reason:', authError.value);
+    }
+  } catch (err) {
+    console.error('[LOGIN DEBUG] Login exception:', err);
+    debugInfo.value = err.message || 'Unknown error';
+  }
+}
+
+function togglePassword() {
+  showPassword.value = !showPassword.value;
+}
+
+onMounted(() => {
+  // Focus the email input when the component mounts
+  const emailInput = document.getElementById('email');
+  if (emailInput) emailInput.focus();
+});
 </script>
 
 <style scoped>
@@ -499,5 +567,55 @@ h2 {
   .features {
     display: none;
   }
+}
+
+.debug-info {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.debug-info h4 {
+  margin-top: 0;
+  color: #dc3545;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.test-success a {
+  color: #2196F3;
+  text-decoration: underline;
+}
+
+/* Dev buttons */
+.dev-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.dev-button {
+  background-color: #8E24AA;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dev-button:hover {
+  background-color: #6A1B9A;
 }
 </style>

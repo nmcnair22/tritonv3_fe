@@ -27,8 +27,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import AppSidebar from './AppSidebar.vue';
-import AppHeader from './AppHeader.vue';
+import AppSidebar from '../components/layout/AppSidebar.vue';
+import AppHeader from '../components/layout/AppHeader.vue';
 
 // State
 const isSidebarExpanded = ref(true);
