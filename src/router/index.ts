@@ -5,7 +5,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
+    component: () => import('../views/Dashboard.vue'),
     meta: {
       title: 'Dashboard',
       requiresAuth: true
@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
+    component: () => import('../views/Login.vue'),
     meta: {
       title: 'Login',
       guest: true
@@ -23,7 +23,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/views/NotFound.vue'),
+    component: () => import('../views/NotFound.vue'),
     meta: {
       title: '404 Not Found'
     }

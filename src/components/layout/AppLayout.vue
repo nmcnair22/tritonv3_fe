@@ -1,46 +1,151 @@
 <template>
-  <div class="app-layout">
-    <AppHeader @toggle-sidebar="toggleSidebar" />
-    <AppSidebar v-model:visible="sidebarVisible" />
+  <div class="layout-wrapper" :class="{ 'sidebar-collapsed': !isSidebarExpanded }">
+    <!-- Sidebar component -->
+    <div class="sidebar" :class="{ 'collapsed': !isSidebarExpanded }">
+      <AppSidebar :expanded="isSidebarExpanded" @toggle="toggleSidebar" />
+    </div>
     
-    <main class="app-content">
-      <slot></slot>
-    </main>
-    
-    <AppFooter />
+    <!-- Main content area -->
+    <div class="main-content">
+      <!-- Header -->
+      <AppHeader @toggle-sidebar="toggleSidebar" />
+      
+      <!-- Page content -->
+      <div class="content-wrapper">
+        <slot></slot>
+      </div>
+      
+      <!-- Footer -->
+      <div class="footer">
+        <div class="copyright">
+          TritonV3 © {{ currentYear }} All rights reserved
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import AppHeader from './AppHeader.vue'
-import AppSidebar from './AppSidebar.vue'
-import AppFooter from './AppFooter.vue'
-import { useSidebarStore } from '@/stores/sidebar'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import AppSidebar from './AppSidebar.vue';
+import AppHeader from './AppHeader.vue';
 
-const sidebarStore = useSidebarStore()
-const sidebarVisible = ref(true)
+// State
+const isSidebarExpanded = ref(true);
+const isMobile = ref(false);
 
+// Computed
+const currentYear = computed(() => new Date().getFullYear());
+
+// Methods
 const toggleSidebar = () => {
-  sidebarVisible.value = !sidebarVisible.value
-  sidebarStore.setVisible(sidebarVisible.value)
-}
+  isSidebarExpanded.value = !isSidebarExpanded.value;
+};
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 992;
+  if (isMobile.value) {
+    isSidebarExpanded.value = false;
+  }
+};
+
+// Lifecycle hooks
+onMounted(() => {
+  // Check mobile on initial load
+  checkMobile();
+  
+  // Add resize listener
+  window.addEventListener('resize', checkMobile);
+});
+
+onBeforeUnmount(() => {
+  // Remove resize listener
+  window.removeEventListener('resize', checkMobile);
+});
 </script>
 
-<style scoped>
-.app-layout {
+<style>
+:root {
+  /* Brand Colors */
+  --night-sky: #0B2244;
+  --sunrise-yellow: #FFB400;
+  --morning-blue: #297FB7;
+  
+  /* UI Colors */
+  --white: #FFFFFF;
+  --light-gray: #F5F5F5;
+  --medium-gray: #E0E0E0;
+  --dark-gray: #757575;
+  
+  /* Layout */
+  --sidebar-width: 234px;
+  --sidebar-collapsed-width: 60px;
+  --header-height: 56px;
+  --content-padding: 24px;
+}
+
+/* Layout Styles */
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--light-gray);
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--night-sky);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow: hidden;
+  transition: margin-left 0.3s ease;
 }
 
-.app-content {
-  flex: 1;
-  padding: 1.5rem;
-  overflow: auto;
-  background-color: var(--p-surface-50);
-  margin-left: var(--sidebar-width, 0);
-  transition: margin-left 0.3s;
+.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
 }
-</style> 
+
+.content-wrapper {
+  flex: 1;
+  padding: var(--content-padding);
+  overflow-y: auto;
+}
+
+.footer {
+  padding: 16px var(--content-padding);
+  border-top: 1px solid var(--medium-gray);
+  background-color: var(--white);
+  font-size: 0.85rem;
+  color: var(--dark-gray);
+}
+
+/* Responsive styles */
+@media (max-width: 991px) {
+  .sidebar {
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.expanded {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+}
+</style>

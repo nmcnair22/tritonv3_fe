@@ -1,41 +1,68 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { updatePreset } from '@primeuix/themes'
+import { defineStore } from 'pinia';
+import { ref, watch } from 'vue';
 
 export const useThemeStore = defineStore('theme', () => {
-  const darkMode = ref(false)
+  // State
+  const isDarkMode = ref(false);
   
-  // Check user's preferred color scheme
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  darkMode.value = localStorage.getItem('darkMode') 
-    ? localStorage.getItem('darkMode') === 'true' 
-    : prefersDark
-  
-  // Apply dark mode to the document if needed
-  if (darkMode.value) {
-    document.documentElement.classList.add('dark-mode')
-  }
-  
-  function toggleDarkMode() {
-    darkMode.value = !darkMode.value
-    localStorage.setItem('darkMode', String(darkMode.value))
+  // Initialize theme based on stored preference or system preference
+  const initializeTheme = () => {
+    // First check localStorage
+    const storedTheme = localStorage.getItem('theme');
     
-    if (darkMode.value) {
-      document.documentElement.classList.add('dark-mode')
+    if (storedTheme) {
+      // Use stored preference
+      isDarkMode.value = storedTheme === 'dark';
     } else {
-      document.documentElement.classList.remove('dark-mode')
+      // Check system preference
+      isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
-  }
+    
+    // Apply theme
+    applyTheme();
+  };
   
-  function setPrimaryColor(primaryColor: string) {
-    // This would be implemented using the PrimeVue theme API
-    // For example:
-    // updatePrimaryPalette({...})
-  }
+  // Toggle between light and dark mode
+  const toggleDarkMode = () => {
+    isDarkMode.value = !isDarkMode.value;
+    
+    // Save preference to localStorage
+    localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light');
+    
+    // Apply theme
+    applyTheme();
+  };
+  
+  // Apply the current theme
+  const applyTheme = () => {
+    if (isDarkMode.value) {
+      document.documentElement.classList.add('dark');
+      // Set specific CSS variables for dark mode
+      document.documentElement.style.setProperty('--background', '#0B2244'); // Night Sky
+      document.documentElement.style.setProperty('--text-color', '#FFFFFF');
+    } else {
+      document.documentElement.classList.remove('dark');
+      // Set specific CSS variables for light mode
+      document.documentElement.style.setProperty('--background', '#F5F5F5');
+      document.documentElement.style.setProperty('--text-color', '#333333');
+    }
+  };
+  
+  // Watch for system preference changes
+  const watchSystemTheme = () => {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      // Only update if the user hasn't manually set a preference
+      if (!localStorage.getItem('theme')) {
+        isDarkMode.value = e.matches;
+        applyTheme();
+      }
+    });
+  };
   
   return {
-    darkMode,
+    isDarkMode,
+    initializeTheme,
     toggleDarkMode,
-    setPrimaryColor
-  }
-}) 
+    watchSystemTheme
+  };
+});

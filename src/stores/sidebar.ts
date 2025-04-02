@@ -1,19 +1,53 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
 export const useSidebarStore = defineStore('sidebar', () => {
-  const isVisible = ref(true)
+  // State
+  const isVisible = ref(true);
+  const isMobileView = ref(false);
+  const sidebarWasVisibleBeforeResize = ref(true);
   
-  function setVisible(value: boolean) {
-    isVisible.value = value
-    document.documentElement.style.setProperty('--sidebar-width', value ? '250px' : '0')
-  }
+  // Methods
+  const toggleSidebar = () => {
+    isVisible.value = !isVisible.value;
+    
+    // Save state for mobile view toggling
+    if (!isMobileView.value) {
+      sidebarWasVisibleBeforeResize.value = isVisible.value;
+    }
+  };
   
-  // Initialize the sidebar width CSS variable
-  setVisible(isVisible.value)
+  const showSidebar = () => {
+    isVisible.value = true;
+  };
+  
+  const hideSidebar = () => {
+    isVisible.value = false;
+  };
+  
+  const setMobileView = (isMobile: boolean) => {
+    // When transitioning between views
+    if (isMobile !== isMobileView.value) {
+      if (isMobile) {
+        // Moving to mobile view
+        sidebarWasVisibleBeforeResize.value = isVisible.value;
+        isVisible.value = false;
+      } else {
+        // Moving to desktop view
+        isVisible.value = sidebarWasVisibleBeforeResize.value;
+      }
+      
+      isMobileView.value = isMobile;
+    }
+  };
   
   return {
     isVisible,
-    setVisible
-  }
-}) 
+    isMobileView,
+    sidebarWasVisibleBeforeResize,
+    toggleSidebar,
+    showSidebar,
+    hideSidebar,
+    setMobileView
+  };
+});
