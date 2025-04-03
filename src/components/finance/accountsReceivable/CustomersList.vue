@@ -102,7 +102,6 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch, computed } from 'vue';
-import { useFinanceApi } from '@/composables/finance/useFinanceApi.ts';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';

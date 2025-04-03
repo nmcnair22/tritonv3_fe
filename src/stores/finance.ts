@@ -38,12 +38,12 @@ export const useFinanceStore = defineStore('finance', () => {
     isLoading.value = true;
     
     try {
-      const response = await apiClient.get('/api/accounting/financial-reports/balanceSheet', {
+      const response = await apiClient.get('/api/accounting/reports/balanceSheet', {
         params: { date: asOfDate }
       });
       
-      if (response.data && response.data.success && response.data.data) {
-        reportData.value = response.data.data;
+      if (response.data && response.data.value) {
+        reportData.value = response.data.value;
         return reportData.value;
       } else {
         throw new Error('Invalid response format');
@@ -62,12 +62,12 @@ export const useFinanceStore = defineStore('finance', () => {
     isLoading.value = true;
     
     try {
-      const response = await apiClient.get('/api/accounting/financial-reports/incomeStatement', {
+      const response = await apiClient.get('/api/accounting/reports/incomeStatement', {
         params: { startDate, endDate }
       });
       
-      if (response.data && response.data.success && response.data.data) {
-        reportData.value = response.data.data;
+      if (response.data && response.data.value) {
+        reportData.value = response.data.value;
         return reportData.value;
       } else {
         throw new Error('Invalid response format');
@@ -86,12 +86,12 @@ export const useFinanceStore = defineStore('finance', () => {
     isLoading.value = true;
     
     try {
-      const response = await apiClient.get('/api/accounting/financial-reports/cashFlow', {
+      const response = await apiClient.get('/api/accounting/reports/cashFlow', {
         params: { startDate, endDate }
       });
       
-      if (response.data && response.data.success && response.data.data) {
-        reportData.value = response.data.data;
+      if (response.data && response.data.value) {
+        reportData.value = response.data.value;
         return reportData.value;
       } else {
         throw new Error('Invalid response format');
@@ -110,12 +110,12 @@ export const useFinanceStore = defineStore('finance', () => {
     isLoading.value = true;
     
     try {
-      const response = await apiClient.get('/api/accounting/financial-reports/retainedEarnings', {
+      const response = await apiClient.get('/api/accounting/reports/retainedEarnings', {
         params: { date: asOfDate }
       });
       
-      if (response.data && response.data.success && response.data.data) {
-        reportData.value = response.data.data;
+      if (response.data && response.data.value) {
+        reportData.value = response.data.value;
         return reportData.value;
       } else {
         throw new Error('Invalid response format');
@@ -134,12 +134,12 @@ export const useFinanceStore = defineStore('finance', () => {
     isLoading.value = true;
     
     try {
-      const response = await apiClient.get('/api/accounting/financial-reports/trialBalance', {
+      const response = await apiClient.get('/api/accounting/reports/trialBalance', {
         params: { date: asOfDate }
       });
       
-      if (response.data && response.data.success && response.data.data) {
-        reportData.value = response.data.data;
+      if (response.data && response.data.value) {
+        reportData.value = response.data.value;
         return reportData.value;
       } else {
         throw new Error('Invalid response format');

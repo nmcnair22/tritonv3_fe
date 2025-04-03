@@ -97,15 +97,15 @@
 
 <script setup>
 import { reactive, computed, onMounted } from 'vue';
-import { useFinanceStore } from '@/stores/finance';
+import { useFinanceStore } from '../../stores/finance';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
 import InputText from 'primevue/inputtext';
-import BalanceSheetReport from '@/components/finance/reports/BalanceSheetReport.vue';
-import IncomeStatementReport from '@/components/finance/reports/IncomeStatementReport.vue';
-import CashFlowReport from '@/components/finance/reports/CashFlowReport.vue';
-import RetainedEarningsReport from '@/components/finance/reports/RetainedEarningsReport.vue';
-import TrialBalanceReport from '@/components/finance/reports/TrialBalanceReport.vue';
+import BalanceSheetReport from '../../components/finance/reports/BalanceSheetReport.vue';
+import IncomeStatementReport from '../../components/finance/reports/IncomeStatementReport.vue';
+import CashFlowReport from '../../components/finance/reports/CashFlowReport.vue';
+import RetainedEarningsReport from '../../components/finance/reports/RetainedEarningsReport.vue';
+import TrialBalanceReport from '../../components/finance/reports/TrialBalanceReport.vue';
 
 // Initialize finance store
 const financeStore = useFinanceStore();
@@ -187,28 +187,43 @@ function initializeDateRange() {
   filters.startDate = startDate.toISOString().split('T')[0];
 }
 
+// Debounce timer
+let debounceTimer;
+const DEBOUNCE_DELAY = 300; // milliseconds
+
 async function generateReport() {
-  try {
-    switch (filters.reportType) {
-      case 'balanceSheet':
-        await financeStore.fetchBalanceSheet(filters.endDate);
-        break;
-      case 'incomeStatement':
-        await financeStore.fetchIncomeStatement(filters.startDate, filters.endDate);
-        break;
-      case 'cashFlow':
-        await financeStore.fetchCashFlowStatement(filters.startDate, filters.endDate);
-        break;
-      case 'retainedEarnings':
-        await financeStore.fetchRetainedEarnings(filters.endDate);
-        break;
-      case 'trialBalance':
-        await financeStore.fetchTrialBalance(filters.endDate);
-        break;
+  clearTimeout(debounceTimer);
+
+  debounceTimer = setTimeout(async () => {
+    // Prevent duplicate calls while loading (still useful as a secondary check)
+    if (financeStore.isLoading) {
+      console.log('[Debounce Check] Store is loading, skipping execution.');
+      return;
     }
-  } catch (err) {
-    console.error(`Error generating ${filters.reportType}:`, err);
-  }
+    console.log('[Debounce] Executing report generation.');
+
+    try {
+      switch (filters.reportType) {
+        case 'balanceSheet':
+          await financeStore.fetchBalanceSheet(filters.endDate);
+          break;
+        case 'incomeStatement':
+          await financeStore.fetchIncomeStatement(filters.startDate, filters.endDate);
+          break;
+        case 'cashFlow':
+          await financeStore.fetchCashFlowStatement(filters.startDate, filters.endDate);
+          break;
+        case 'retainedEarnings':
+          await financeStore.fetchRetainedEarnings(filters.endDate);
+          break;
+        case 'trialBalance':
+          await financeStore.fetchTrialBalance(filters.endDate);
+          break;
+      }
+    } catch (err) {
+      console.error(`Error generating ${filters.reportType}:`, err);
+    }
+  }, DEBOUNCE_DELAY);
 }
 
 function printReport() {

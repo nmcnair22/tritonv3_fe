@@ -145,7 +145,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useAuth } from '@/composables/auth/useAuth';
+import { useAuth } from '../composables/auth/useAuth';
 
 const router = useRouter();
 const route = useRoute();

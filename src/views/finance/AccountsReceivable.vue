@@ -258,7 +258,6 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { useFinanceApi } from '@/composables/finance/useFinanceApi.ts';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import TabView from 'primevue/tabview';
@@ -268,10 +267,10 @@ import Calendar from 'primevue/calendar';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
 import Dialog from 'primevue/dialog';
-import SalesInvoicesList from '@/components/finance/accountsReceivable/SalesInvoicesList.vue';
-import ArAgingTable from '@/components/finance/accountsReceivable/ArAgingTable.vue';
-import CustomersList from '@/components/finance/accountsReceivable/CustomersList.vue';
-import CustomerDetailsCard from '@/components/finance/accountsReceivable/CustomerDetailsCard.vue';
+import SalesInvoicesList from '../../components/finance/accountsReceivable/SalesInvoicesList.vue';
+import ArAgingTable from '../../components/finance/accountsReceivable/ArAgingTable.vue';
+import CustomersList from '../../components/finance/accountsReceivable/CustomersList.vue';
+import CustomerDetailsCard from '../../components/finance/accountsReceivable/CustomerDetailsCard.vue';
 
 const { 
   isLoading, 

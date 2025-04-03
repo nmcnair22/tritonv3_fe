@@ -126,7 +126,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue';
-import { useFinanceApi } from '../../composables/finance/useFinanceApi.ts';
+import { useFinanceStore } from '../../stores/finance';
 import { useAiInsights } from '../../composables/finance/useAiInsights';
 import FinancialSummaryCard from '../../components/finance/dashboard/FinancialSummaryCard.vue';
 import RevenueChart from '../../components/finance/dashboard/RevenueChart.vue';
@@ -134,7 +134,7 @@ import AiInsightsPanel from '../../components/finance/dashboard/AiInsightsPanel.
 import SalesInvoicesList from '../../components/finance/accountsReceivable/SalesInvoicesList.vue';
 import ArAgingTable from '../../components/finance/accountsReceivable/ArAgingTable.vue';
 
-const { fetchIncomeStatementData, fetchSalesInvoices, fetchCompanies, fetchArAging } = useFinanceApi();
+const financeStore = useFinanceStore();
 const { getFinancialInsights } = useAiInsights();
 
 // State
@@ -189,8 +189,6 @@ const dateRange = computed(() => {
 // Debug function to log information
 function logDebugInfo() {
   console.log({
-    companies: companies.value,
-    isLoadingCompanies: isLoadingCompanies.value,
     isLoadingDashboard: isLoadingDashboard.value,
     error: error.value,
     filters: filters,
@@ -206,7 +204,6 @@ function logDebugInfo() {
 // Methods
 async function loadDashboardData() {
   console.log("Loading dashboard data with date range:", dateRange.value);
-  console.log("Selected company ID:", filters.companyId);
   
   isLoadingDashboard.value = true;
   error.value = null;
@@ -214,10 +211,9 @@ async function loadDashboardData() {
   try {
     // Fetch income statement data
     console.log("Fetching income statement data...");
-    const incomeData = await fetchIncomeStatementData(
+    const incomeData = await financeStore.fetchIncomeStatement(
       dateRange.value.startDate, 
-      dateRange.value.endDate,
-      filters.companyId
+      dateRange.value.endDate
     );
     
     console.log("Income data received:", incomeData);
@@ -237,54 +233,20 @@ async function loadDashboardData() {
     // Update chart data
     revenueChartData.value = incomeData.monthlyData || [];
     
-    // Fetch recent invoices
-    console.log("Fetching recent invoices...");
-    recentInvoices.value = await fetchSalesInvoices({
-      $top: 5,
-      $orderby: 'postingDate desc',
-      companyId: filters.companyId
-    });
-    
-    console.log("Recent invoices received:", recentInvoices.value);
-    
     // Fetch AR aging data
     console.log("Fetching AR aging data...");
-    try {
-      arAgingData.value = await fetchArAging({
-        endDate: dateRange.value.endDate,
-        companyId: filters.companyId
-      });
-      console.log("AR aging data received:", arAgingData.value);
-    } catch (err) {
-      console.warn("AR aging API failed, using mock data:", err);
-      // Provide mock AR aging data if the API fails
-      arAgingData.value = {
-        current: 45000,
-        days30: 32000,
-        days60: 18500,
-        days90: 9800,
-        over90: 12700,
-        customers: [
-          { name: 'Acme Corporation', current: 12000, days30: 8000, days60: 0, days90: 0, over90: 0 },
-          { name: 'Globex Industries', current: 8500, days30: 6000, days60: 4500, days90: 0, over90: 0 },
-          { name: 'Stark Enterprises', current: 6000, days30: 4000, days60: 2000, days90: 0, over90: 5700 },
-          { name: 'Wayne Industries', current: 11000, days30: 0, days60: 0, days90: 4800, over90: 0 },
-          { name: 'Umbrella Corp', current: 7500, days30: 14000, days60: 12000, days90: 5000, over90: 7000 }
-        ]
-      };
-    }
+    arAgingData.value = await financeStore.fetchArAging();
+    
+    console.log("AR aging data received:", arAgingData.value);
     
     // Get AI insights
-    console.log("Fetching AI insights...");
-    aiInsights.value = await getFinancialInsights(
-      dateRange.value.startDate,
-      dateRange.value.endDate,
-      filters.companyId
-    );
+    console.log("Getting AI insights...");
+    aiInsights.value = await getFinancialInsights(dashboardData.value);
     
     console.log("AI insights received:", aiInsights.value);
+    
   } catch (err) {
-    console.error('Error loading dashboard data:', err);
+    console.error("Error loading dashboard data:", err);
     error.value = err.message || 'Failed to load dashboard data';
   } finally {
     isLoadingDashboard.value = false;
@@ -297,7 +259,7 @@ async function loadCompanies() {
   
   try {
     console.log("Fetching companies...");
-    companies.value = await fetchCompanies();
+    companies.value = await financeStore.fetchCompanies();
     console.log("Companies received:", companies.value);
     
     if (companies.value && companies.value.length > 0) {
@@ -328,7 +290,7 @@ function retryLoading() {
 // Add test direct call method
 async function testDirectCall() {
   console.log("[DASHBOARD] Testing direct API call...");
-  const { testDirectApiCall } = useFinanceApi();
+  const { testDirectApiCall } = useFinanceStore();
   directCallResult.value = await testDirectApiCall();
   console.log("[DASHBOARD] Direct call result:", directCallResult.value);
 }
@@ -337,10 +299,10 @@ async function testDirectCall() {
 onMounted(() => {
   console.log("=== FINANCIAL DASHBOARD MOUNTED ===");
   console.log("Are API modules loaded?", {
-    useFinanceApi: !!useFinanceApi,
+    useFinanceStore: !!useFinanceStore,
     useAiInsights: !!useAiInsights,
-    fetchCompanies: !!fetchCompanies,
-    fetchIncomeStatementData: !!fetchIncomeStatementData
+    fetchCompanies: !!financeStore.fetchCompanies,
+    fetchIncomeStatementData: !!financeStore.fetchIncomeStatement
   });
   
   // Check if we have auth token

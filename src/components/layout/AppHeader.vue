@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import ThemeToggle from '@/components/common/ThemeToggle.vue';
+import ThemeToggle from '../../components/common/ThemeToggle.vue';
 
 // Emits
 defineEmits(['toggle-sidebar']);

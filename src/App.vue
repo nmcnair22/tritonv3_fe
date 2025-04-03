@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { useAuth } from '@/composables/auth/useAuth';
+import { useAuth } from './composables/auth/useAuth';
 
 const { checkAuth } = useAuth();
 

@@ -133,7 +133,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useFinanceApi } from '@/composables/finance/useFinanceApi.ts';
 import ProgressSpinner from 'primevue/progressspinner';
 import Button from 'primevue/button';
 import Card from 'primevue/card';

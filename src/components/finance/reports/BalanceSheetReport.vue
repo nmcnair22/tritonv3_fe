@@ -12,7 +12,7 @@ console.log('<<<< BALANCE SHEET REPORT COMPONENT LOADED >>>>');
       <ProgressSpinner />
     </div>
 
-    <div v-else-if="reportData?.value" class="report-content">
+    <div v-else-if="reportData" class="report-content">
       <!-- Assets Section -->
       <div class="section mb-4">
         <h3 class="section-title">Assets</h3>
@@ -79,7 +79,7 @@ import ProgressSpinner from 'primevue/progressspinner';
 
 const props = defineProps({
   reportData: {
-    type: Object,
+    type: Array,
     required: true
   },
   filters: {
@@ -125,30 +125,30 @@ function getLineClass(line) {
 
 // Filter and sort lines by section
 const assetLines = computed(() => {
-  return props.reportData?.value?.filter(line => 
+  return props.reportData?.filter(line => 
     line.lineNumber >= 10000 && line.lineNumber < 30000
   ) || [];
 });
 
 const liabilityLines = computed(() => {
-  return props.reportData?.value?.filter(line => 
+  return props.reportData?.filter(line => 
     line.lineNumber >= 320000 && line.lineNumber < 380000
   ) || [];
 });
 
 const equityLines = computed(() => {
-  return props.reportData?.value?.filter(line => 
+  return props.reportData?.filter(line => 
     line.lineNumber >= 380000 && line.lineNumber < 440000
   ) || [];
 });
 
 // Calculate total liabilities and equity
 const totalLiabilitiesAndEquity = computed(() => {
-  const totalLiabilities = props.reportData?.value?.find(line => 
+  const totalLiabilities = props.reportData?.find(line => 
     line.lineNumber === 360000
   )?.balance || 0;
   
-  const totalEquity = props.reportData?.value?.find(line => 
+  const totalEquity = props.reportData?.find(line => 
     line.lineNumber === 420000
   )?.balance || 0;
   

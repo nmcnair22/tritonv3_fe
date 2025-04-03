@@ -203,7 +203,7 @@ import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import Message from 'primevue/message';
 import Tag from 'primevue/tag';
-import SalesInvoicesList from '@/components/finance/accountsReceivable/SalesInvoicesList.vue';
+import SalesInvoicesList from '../../components/finance/accountsReceivable/SalesInvoicesList.vue';
 
 const route = useRoute();
 const router = useRouter();

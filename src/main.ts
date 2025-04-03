@@ -4,7 +4,7 @@ import Router from './router'
 import App from './App.vue'
 // PrimeVue
 import PrimeVue from 'primevue/config'
-import Lara from '@primeuix/themes/lara'
+import Material from '@primeuix/themes/material'
 import Tooltip from 'primevue/tooltip'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
@@ -58,7 +58,7 @@ app.config.globalProperties.axios = axios
 
 app.use(PrimeVue, {
 theme: {
-preset: Lara,
+preset: Material,
 options: {
 prefix: 'p',
 darkModeSelector: 'system'

@@ -3,7 +3,7 @@ import axios from 'axios'
 import apiClient from '../../services/api'
 
 // Define basic types
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
