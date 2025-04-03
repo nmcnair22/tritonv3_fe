@@ -13,7 +13,7 @@
     </div>
     
     <div v-else class="report-content">
-      <DataTable :value="reportData.value" class="p-datatable-sm" showGridlines>
+      <DataTable :value="reportData" class="p-datatable-sm" showGridlines>
         <Column field="display" header="Account">
           <template #body="{ data }">
             <div :class="{
@@ -51,7 +51,7 @@ import ProgressSpinner from 'primevue/progressspinner';
 // Define props
 const props = defineProps({
   reportData: {
-    type: Object,
+    type: Array,
     required: true
   },
   filters: {
@@ -66,8 +66,8 @@ const props = defineProps({
 
 // Format the date range from filters or reportData
 const formattedDateRange = computed(() => {
-  if (props.reportData?.value?.[0]?.dateFilter) {
-    const dateFilter = props.reportData.value[0].dateFilter;
+  if (props.reportData?.[0]?.dateFilter) {
+    const dateFilter = props.reportData[0].dateFilter;
     return `For the period ending ${formatDate(dateFilter)}`;
   }
   

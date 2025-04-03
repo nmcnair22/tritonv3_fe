@@ -15,9 +15,9 @@
     
     <div v-else class="report-content">
       <div class="line-items">
-        <!-- Map through the items, using the value field data structure we got from our API test -->
+        <!-- Map through the items, using the array data structure directly -->
         <div 
-          v-for="item in reportData.value" 
+          v-for="item in reportData" 
           :key="item.id" 
           class="line-item"
           :class="{
@@ -42,7 +42,7 @@ import { computed } from 'vue';
 // Define props
 const props = defineProps({
   reportData: {
-    type: Object,
+    type: Array,
     required: true
   },
   filters: {
@@ -57,8 +57,8 @@ const props = defineProps({
 
 // Format the date range from filters or reportData
 const formattedDateRange = computed(() => {
-  if (props.reportData?.value?.[0]?.dateFilter) {
-    const dateFilter = props.reportData.value[0].dateFilter;
+  if (props.reportData?.[0]?.dateFilter) {
+    const dateFilter = props.reportData[0].dateFilter;
     return `For the period ending ${formatDate(dateFilter)}`;
   }
   

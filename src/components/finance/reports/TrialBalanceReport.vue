@@ -79,7 +79,7 @@ import { ref, computed } from 'vue';
 // Define props
 const props = defineProps({
   reportData: {
-    type: Object,
+    type: Array,
     required: true
   },
   filters: {
@@ -98,8 +98,8 @@ const showZeroBalances = ref(false);
 
 // Format the date from reportData
 const formattedDate = computed(() => {
-  if (props.reportData?.value?.[0]?.dateFilter) {
-    const dateFilter = props.reportData.value[0].dateFilter;
+  if (props.reportData?.[0]?.dateFilter) {
+    const dateFilter = props.reportData[0].dateFilter;
     return formatDate(dateFilter);
   }
   return props.filters.endDate ? formatDate(props.filters.endDate) : 'N/A';
@@ -153,9 +153,9 @@ function parseNumericValue(value) {
 
 // Calculate total debits
 function calculateTotalDebit() {
-  if (!props.reportData?.value) return 0;
+  if (!props.reportData) return 0;
   
-  return props.reportData.value.reduce((sum, item) => {
+  return props.reportData.reduce((sum, item) => {
     if (item.balanceAtDateDebit && item.balanceAtDateDebit !== '' && item.balanceAtDateDebit !== '0.00') {
       return sum + parseNumericValue(item.balanceAtDateDebit);
     }
@@ -165,9 +165,9 @@ function calculateTotalDebit() {
 
 // Calculate total credits
 function calculateTotalCredit() {
-  if (!props.reportData?.value) return 0;
+  if (!props.reportData) return 0;
   
-  return props.reportData.value.reduce((sum, item) => {
+  return props.reportData.reduce((sum, item) => {
     if (item.balanceAtDateCredit && item.balanceAtDateCredit !== '' && item.balanceAtDateCredit !== '0.00') {
       return sum + parseNumericValue(item.balanceAtDateCredit);
     }
@@ -177,9 +177,9 @@ function calculateTotalCredit() {
 
 // Filtered items
 const filteredItems = computed(() => {
-  if (!props.reportData?.value) return [];
+  if (!props.reportData) return [];
   
-  return props.reportData.value.filter(item => {
+  return props.reportData.filter(item => {
     // Filter by search term
     const matchesSearch = 
       item.number.toLowerCase().includes(searchTerm.value.toLowerCase()) || 

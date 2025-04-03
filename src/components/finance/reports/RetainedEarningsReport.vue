@@ -16,14 +16,14 @@
     <div v-else class="report-content">
       <div class="report-section">
         <div class="line-items">
-          <!-- Map through the items, using the value field data structure we got from our API test -->
-          <div v-for="item in reportData.value" :key="item.id" class="line-item" :class="{ 'indented': item.indentation > 0 }">
+          <!-- Map through the items directly from reportData array -->
+          <div v-for="item in reportData" :key="item.id" class="line-item" :class="{ 'indented': item.indentation > 0 }">
             <span class="item-name">{{ item.display }}</span>
             <span class="item-amount" v-if="item.lineType !== 'header'">{{ formatCurrency(item.netChange) }}</span>
           </div>
           
           <!-- Manually render the grand total if it's not included in the API response -->
-          <div v-if="!hasTotal(reportData.value)" class="line-item total">
+          <div v-if="!hasTotal" class="line-item total">
             <span class="item-name">Total Retained Earnings</span>
             <span class="item-amount">{{ formatCurrency(calculateTotal()) }}</span>
           </div>
@@ -39,7 +39,7 @@ import { computed } from 'vue';
 // Define props
 const props = defineProps({
   reportData: {
-    type: Object,
+    type: Array,
     required: true
   },
   filters: {
@@ -54,11 +54,20 @@ const props = defineProps({
 
 // Format the date from reportData
 const formattedDate = computed(() => {
-  if (props.reportData?.value?.[0]?.dateFilter) {
-    const dateFilter = props.reportData.value[0].dateFilter;
+  if (props.reportData?.[0]?.dateFilter) {
+    const dateFilter = props.reportData[0].dateFilter;
     return formatDate(dateFilter);
   }
   return props.filters.endDate ? formatDate(props.filters.endDate) : 'N/A';
+});
+
+// Check if there's already a total in the data
+const hasTotal = computed(() => {
+  return props.reportData?.some(item => 
+    item.lineType === 'total' || 
+    item.display.toLowerCase().includes('total') ||
+    item.display.toLowerCase().includes('earnings, period end')
+  );
 });
 
 // Helper function to format date
@@ -80,20 +89,11 @@ function formatCurrency(value) {
   }).format(value);
 }
 
-// Helper function to check if there's already a total in the data
-function hasTotal(items) {
-  return items.some(item => 
-    item.lineType === 'total' || 
-    item.display.toLowerCase().includes('total') ||
-    item.display.toLowerCase().includes('earnings, period end')
-  );
-}
-
 // Calculate total if needed
 function calculateTotal() {
-  if (!props.reportData?.value) return 0;
+  if (!props.reportData) return 0;
   
-  return props.reportData.value.reduce((sum, item) => {
+  return props.reportData.reduce((sum, item) => {
     // Only sum detail lines, not headers
     if (item.lineType === 'detail') {
       return sum + (item.netChange || 0);
